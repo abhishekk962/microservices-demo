@@ -145,6 +145,12 @@ func main() {
 	mustConnGRPC(ctx, &svc.checkoutSvcConn, svc.checkoutSvcAddr)
 	mustConnGRPC(ctx, &svc.adSvcConn, svc.adSvcAddr)
 
+	// Initialize activity logging
+	if err := activitylog.InitDB(log); err != nil {
+		log.Fatalf("failed to initialize activity logging: %v", err)
+	}
+	defer activitylog.CloseDB()
+
 	r := mux.NewRouter()
 	r.HandleFunc(baseUrl + "/", svc.homeHandler).Methods(http.MethodGet, http.MethodHead)
 	r.HandleFunc(baseUrl + "/product/{id}", svc.productHandler).Methods(http.MethodGet, http.MethodHead)
@@ -160,6 +166,11 @@ func main() {
 	r.HandleFunc(baseUrl + "/_healthz", func(w http.ResponseWriter, _ *http.Request) { fmt.Fprint(w, "ok") })
 	r.HandleFunc(baseUrl + "/product-meta/{ids}", svc.getProductByID).Methods(http.MethodGet)
 	r.HandleFunc(baseUrl + "/bot", svc.chatBotHandler).Methods(http.MethodPost)
+
+	// Activity logging endpoints
+	r.HandleFunc(baseUrl + "/activities", svc.listActivitiesHandler).Methods(http.MethodGet)
+	r.HandleFunc(baseUrl + "/activities/session", svc.sessionActivitiesHandler).Methods(http.MethodGet)
+	r.HandleFunc(baseUrl + "/activities/stats", svc.activityStatsHandler).Methods(http.MethodGet)
 
 	var handler http.Handler = r
 	handler = &logHandler{log: log, next: handler}     // add logging

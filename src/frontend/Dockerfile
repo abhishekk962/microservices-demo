@@ -17,6 +17,9 @@ ARG TARGETOS
 ARG TARGETARCH
 WORKDIR /src
 
+# Install build dependencies
+RUN apk add --no-cache gcc musl-dev sqlite sqlite-dev
+
 # restore dependencies
 COPY go.mod go.sum ./
 RUN go mod download
@@ -24,10 +27,17 @@ COPY . .
 
 # Skaffold passes in debug-oriented compiler flags
 ARG SKAFFOLD_GO_GCFLAGS
-RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} CGO_ENABLED=0 go build -gcflags="${SKAFFOLD_GO_GCFLAGS}" -o /go/bin/frontend .
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} CGO_ENABLED=1 go build -gcflags="${SKAFFOLD_GO_GCFLAGS}" -o /go/bin/frontend .
 
-FROM scratch
+FROM alpine:3.18
 WORKDIR /src
+
+# Install runtime dependencies
+RUN apk add --no-cache sqlite
+
+# Create data directory for SQLite database
+RUN mkdir -p /src/data && chmod 777 /src/data
+
 COPY --from=builder /go/bin/frontend /src/server
 COPY ./templates ./templates
 COPY ./static ./static

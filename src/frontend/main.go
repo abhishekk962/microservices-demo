@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/profiler"
+	"github.com/GoogleCloudPlatform/microservices-demo/src/frontend/activitylog"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -57,7 +58,8 @@ var (
 	baseUrl         = ""
 )
 
-type ctxKeySessionID struct{}
+// CtxKeySessionID is the type for session ID context keys
+type CtxKeySessionID struct{}
 
 type frontendServer struct {
 	productCatalogSvcAddr string
@@ -180,6 +182,7 @@ func main() {
 	var handler http.Handler = r
 	handler = &logHandler{log: log, next: handler}     // add logging
 	handler = ensureSessionID(handler)                 // add session ID
+	handler = activitylog.NewActivityMiddleware(log, handler) // add activity logging
 	handler = otelhttp.NewHandler(handler, "frontend") // add OTel tracing
 
 	log.Infof("starting server on " + addr + ":" + srvPort)

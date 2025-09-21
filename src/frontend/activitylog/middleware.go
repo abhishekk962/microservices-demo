@@ -22,6 +22,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+	"github.com/GoogleCloudPlatform/microservices-demo/src/frontend"
 )
 
 // ActivityMiddleware wraps an http.Handler and logs activities
@@ -120,9 +121,10 @@ func (m *ActivityMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Implement required interfaces
-type ctxKeySessionID struct{}
-type ctxKeyRequestID struct{}
+// Import context keys from main package
+// Use the context key types from the main package
+type ctxKeySessionID = main.CtxKeySessionID
+type ctxKeyRequestID = main.CtxKeyRequestID
 
 type responseRecorder struct {
 	w      http.ResponseWriter

@@ -24,8 +24,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type ctxKeyLog struct{}
-type ctxKeyRequestID struct{}
+// CtxKeyLog is the type for logging context keys
+type CtxKeyLog struct{}
+
+// CtxKeyRequestID is the type for request ID context keys
+type CtxKeyRequestID struct{}
 
 type logHandler struct {
 	log  *logrus.Logger

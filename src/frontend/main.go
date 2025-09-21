@@ -171,6 +171,11 @@ func main() {
 	r.HandleFunc(baseUrl + "/activities", svc.listActivitiesHandler).Methods(http.MethodGet)
 	r.HandleFunc(baseUrl + "/activities/session", svc.sessionActivitiesHandler).Methods(http.MethodGet)
 	r.HandleFunc(baseUrl + "/activities/stats", svc.activityStatsHandler).Methods(http.MethodGet)
+	r.HandleFunc(baseUrl + "/activities/view", func(w http.ResponseWriter, r *http.Request) {
+		if err := templates.ExecuteTemplate(w, "activities", nil); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}).Methods(http.MethodGet)
 
 	var handler http.Handler = r
 	handler = &logHandler{log: log, next: handler}     // add logging
